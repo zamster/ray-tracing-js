@@ -1,0 +1,319 @@
+<!DOCTYPE  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title>Introduction to Ray-Tracing</title>
+    <script type="text/javascript" src="res/RayTracing.js"></script>
+    <script type="text/javascript" src="res/jquery.min.js"></script>
+    <script type="text/javascript" src="res/slide.js"></script>
+    <link rel="stylesheet" type="text/css" href="res/slide.css" />
+    <style type="text/css">
+        canvas {
+            float: right;
+            border-style: solid;
+            border-width: 1px;
+        }
+
+        body {
+            background: #f2f2f2;
+            word-spacing: 1px;
+            text-align: left;
+            line-height: 21px;
+            font-family: Georgia, "Times New Roman", Times, serif;
+        }
+
+        h1 {
+            font-size: x-large;
+            letter-spacing: 1px;
+            color: black;
+        }
+    </style>
+</head>
+
+<body onload="">
+    <div style="text-align:center;"> <img src="images/logo.png" width="271" height="61" /><br/>
+        <h1>Introduction to Ray-Tracing</h1>
+    </div>
+
+    <!-- The Slides Start -->
+    <script type="text/javascript">
+        featuredcontentglider.init({
+            gliderid: "canadaprovinces", //ID of main glider container
+            contentclass: "glidecontent", //Shared CSS class name of each glider content
+            togglerid: "p-select", //ID of toggler container
+            remotecontent: "", //Get gliding contents from external file on server? "filename" or "" to disable
+            selected: 0, //Default selected content index (0=1st)
+            persiststate: false, //Remember last content shown within browser session (true/false)?
+            speed: 500, //Glide animation duration (in milliseconds)
+            direction: "downup", //set direction of glide: "updown", "downup", "leftright", or "rightleft"
+            autorotate: false, //Auto rotate contents (true/false)?
+            autorotateconfig: [3000, 2] //if auto rotate enabled, set [milliseconds_btw_rotations, cycles_before_stopping]
+        })
+    </script>
+    <div id="canadaprovinces" class="glidecontentwrapper">
+
+        <!-- 1 Start -->
+        <div class="glidecontent">
+            <p>1.Introduction</p>
+            When talking about 3D, people are amazed by its beautiful frames, which they look as if they really exist. In real time rendering,
+            the APIs, such as OpenGL and DirectX, render numerous triangles or other primitive types, and then rasterize
+            the image. But this only support local illumination, which means no real shadow, reflection and refraction are
+            truly presented. In fact, a rasterization rendering system always simulate these effects by the means of shadow
+            mapping and environment mapping.
+            <div align=c enter>
+                <p><img src="images/pic005.png" width="300" height="225" style="float: left; padding: 10px" /></p>
+                <p><img src="images/pic006.png" width="300" height="225" style="float: left; padding: 10px" /></p>
+                <p><img src="images/pic007.png" width="300" height="225" style="float: left; padding: 10px" /></p>
+            </div>
+            <p>In order to make a more realistic rendered scene image, Turner Whitted put forward ray tracing algorithm in 1980.</p>
+        </div>
+        <!-- 1 End -->
+
+        <!-- 2 Start -->
+        <div class="glidecontent">
+            <p>2.Ray-Tracing</p>
+            <p>Ray tracing is a technique for rendering 3D scene with global illumination, which is basically an attempt to
+                imitate nature. The colors that you see are rays of light cast by the sun, bouncing around the detailed scenery
+                of nature, and finally hitting your eye.</p>
+            <p>For instance, render a scene with spheres, a light source and a camera.</p>
+            <div align=c enter>
+                <p><img src="images/pic002.png" width="300" height="200" style="padding: 10px" /></p>
+            </div>
+            <p>First of all, imagine the camera is standing in front of a huge white canvas, waiting to paint, to fill each
+                pixel with a certain color. Next choose a pixel and create rays from camera through the pixel. This is called
+                the primary ray. The task of it is to find first primitive hit, or in other words, to solve the problem of
+                visibility.</p>
+            <p>This small part of the whole object is visible or not, is judging by if there is intersection point between the
+                primary ray and the object.</p>
+        </div>
+        <!-- 2 End -->
+
+        <!-- 3 Start -->
+        <div class="glidecontent">
+            <p>3.Canvas</p>
+            <p> The output of raytracing is an image, that means, you can represent it in a 2D array.Here, I use "canvas", which
+                is a feature of HTML5. This is a simple test, to colorize each pixel of the canvas. It's getting redder and
+                redder from left to right and greener and greener from top to bottom. </p>
+            <p>
+                <canvas id="TestCanvas" width="256" height="256"></canvas>
+            </p>
+            <p>
+                <textarea rows="19" cols="80" id="TestCanvasCode">
+var canvas = document.getElementById(&quot;TestCanvas&quot;);
+var ctx = canvas.getContext(&quot;2d&quot;);
+var w = canvas.attributes.width.value;
+var h = canvas.attributes.height.value;
+ctx.fillStyle = &quot;rgb(0,0,0)&quot;;
+ctx.fillRect(0, 0, w, h);
+var imgdata = ctx.getImageData(0, 0, w, h);
+var pixels = imgdata.data;
+var i = 0;
+for (var y = 0; y &lt; h; y++)
+    for (var x = 0; x &lt; w; x++)
+    {
+        pixels[i++] = x / w * 255;
+        pixels[i++] = y / h * 255;
+        pixels[i++] = 0;
+        pixels[i++] = 255;
+    }
+ctx.putImageData(imgdata, 0, 0);
+	</textarea>
+            </p>
+            <p>
+                <button onclick="eval(document.getElementById('TestCanvasCode').value)" type="button">Run</button>
+            </p>
+            <p> Try:<br/> 1. Modify the third pixels[i++] = 0 to 255 and then what happen?<br/>
+            </p>
+        </div>
+        <!-- 3 End -->
+
+        <!-- 4 Start -->
+        <div class="glidecontent">
+            <p>4.Basic knowledge</p>
+            <p>4.1 Ray</p>
+            <p>In Euclidean geometry, a ray is part of a line which is finite in one direction, but infinite in the other. It
+                can be defined by two points, the initial point, A, and one other, B. It's parametric function looks like
+                this:</p>
+            <div align=c enter>
+                <p><img src="images/pic008.png" width="153" height="20" style="padding: 10px" /></p>
+            </div>
+            <p>4.2 Primary Rays</p>
+            <p>Prior the primary rays a generated from the origin of the camera through each pixel of the projection plane.
+                Thus a primary ray can hit a light source, an object within the virtual scene or nothing. This first ray
+                shoot into the virtual scene is also called camera ray or visibility ray. The first object hit of the primary
+                ray represents the object (or its part) visible to the camera.</p>
+            <p>4.3 Secondary Rays</p>
+            <p>In case that a primary ray hits an object within the virtual scene an intersection point of this object is found.
+                This means that this point hit is within a shadow, not directly illuminated by an light source. To retrieve
+                the diffuse amount of light illuminating this point three new rays are generated at this spot, the secondary
+                rays. The first type of a secondary ray represents a shadow ray, the second a reflection ray (e.g. the object
+                hit is a mirror or shiny surfaces). The third kind of a secondary ray is a ray of refraction, in case the
+                object hit within the scene is a translucent object (e.g. glass).</p>
+        </div>
+        <!-- 4 End -->
+
+        <!-- 5 Start -->
+        <div class="glidecontent">
+            <p>5.Camera</p>
+            <p>The common projection system are orthographic projection and perspective projection. Here I will talk about perspective
+                projection first.</p>
+            <div align=c enter>
+                <p><img src="images/pic003.png" width="300" height="196" style="padding: 10px" /></p>
+            </div>
+            <p>From the image we know, forward and right, represent respectively the forward vector and right vector. Because
+                the position of camera is fixed, so we can generate a ray with the position of the pixel(x, y) and it's direction.
+                The relation between FOV and s is:</p>
+            <div align=c enter>
+                <p><img src="images/pic009.png" width="109" height="39" style="padding: 10px" /></p>
+            </div>
+        </div>
+        <!-- 5 End -->
+
+        <!-- 6 Start -->
+        <div class="glidecontent">
+            <p>6.Render Depth</p>
+            <p>Depth is the distance between camera and the most close intersection point, because of the depth range is from
+                zero to infinite, in order to display it out, it can be mapped to a range of gray. Here with the [0, maxDepth]
+                mapped to [255, 0], that the depth of 0 pixels for the white, depth of maxDepth pixel is black.</p>
+            <p>
+                <canvas id="DepthCanvas" width="256" height="256"></canvas>
+            </p>
+            <p>
+                <textarea id="DepthCode" rows="19" cols="80">
+renderDepth(
+    document.getElementById('DepthCanvas'), 
+    new Union([
+        new Plane(new Vector3(0, 1, 0), 0),
+        new Sphere(new Vector3(0, 10, -10), 10)
+    ]),
+new PerspectiveCamera(new Vector3(0, 10, 10), new Vector3(0, 0, -1), new Vector3(0, 1, 0), 90), 20);
+    </textarea>
+            </p>
+            </p>
+            <button onclick="eval(document.getElementById('DepthCode').value)">Run</button>
+            </p>
+            <p>
+        </div>
+        <!-- 6 End -->
+
+        <!-- 7 Start -->
+        <div class="glidecontent">
+            <p>7.Render Normals</p>
+            <p>Intersection tests also calculated the normal vector of the intersection point, where it can be visualized. Normal
+                vector is a unit vector, its scope of each element is [-1, 1]. The unit vector mapped to the color can be
+                implement like this:<br/> the (x, y, z) maps to (r, g, b), ranging from [-1, 1] maps to [0, 255].</p>
+            <p>
+                <canvas id="NormalCanvas" width="256" height="256"></canvas>
+            </p>
+            <p>
+                <textarea id="NormalCode" rows="19" cols="80">
+renderNormal(
+    document.getElementById('NormalCanvas'), 
+    new Union([
+        new Plane(new Vector3(0, 1, 0), 0),
+        new Sphere(new Vector3(0, 10, -10), 10)
+    ]),
+new PerspectiveCamera(new Vector3(0, 10, 10), new Vector3(0, 0, -1), new Vector3(0, 1, 0), 90));
+</textarea>
+            </p>
+            <p>
+                <button onclick="eval(document.getElementById('NormalCode').value)">Run</button>
+            </p>
+            <p>At the top of the Sphere, its normal vector is close to (0, 1, 0), so is light green (0.5, 1, 0.5).</p>
+        </div>
+        <!-- 7 End -->
+
+        <!-- 8 Start -->
+        <div class="glidecontent">
+            <p>8.Material</p>
+            <p>Rendering depth and normal is only for testing and debugging, in order to display the "real" color, it needs
+                to define the color of intersection point, that is called the material.</p>
+            <p>
+                <canvas id="RayTracingCanvas" width="256" height="256"></canvas>
+            </p>
+            <p>
+                <textarea id="RayTracingCode" rows="19" cols="80">
+var plane = new Plane(new Vector3(0, 1, 0), 0);
+var sphere1 = new Sphere(new Vector3(-10, 10, -10), 10);
+var sphere2 = new Sphere(new Vector3(10, 10, -10), 10);
+plane.material = new CheckerMaterial(0.1);
+sphere1.material = new PhongMaterial(Color.red, Color.white, 16);
+sphere2.material = new PhongMaterial(Color.blue, Color.white, 16);
+
+rayTrace(
+    document.getElementById('RayTracingCanvas'), 
+    new Union([plane, sphere1, sphere2]),
+    new PerspectiveCamera(new Vector3(0, 5, 15), new Vector3(0, 0, -1), new Vector3(0, 1, 0), 90),
+    3);
+</textarea>
+            </p>
+            <p>
+                <button onclick="eval(document.getElementById('RayTracingCode').value)">Run</button>
+            </p>
+            <p>In Computer Graphic, the chess board is the most common test texture. Here I don't need to consider texture mapping
+                problem, just calculate (x, z) coordinates of a location and then determine black or white color.</p>
+        </div>
+        <!-- 8 End -->
+
+        <!-- 9 Start -->
+        <div class="glidecontent">
+            <p>9.Reflection</p>
+            <p>Generally speaking, some materials are not fully reflective (except mirror), so add for material with a property
+                called reflectiveness. Reflection function is very simple, continue tracing if the ray hits the none-zero
+                material reflectiveness, and mix the result with reflectiveness. For example, a reflectiveness is 25%, so
+                it returns 75% of its color, and plus 25% of the reflective color returned.</p>
+            <p>
+                <canvas id="renderCanvas" width="256" height="256"></canvas>
+            </p>
+            <p>
+                <textarea id="FinalCode" rows="19" cols="80">
+var plane = new Plane(new Vector3(0, 1, 0), 0);
+var sphere1 = new Sphere(new Vector3(-10, 10, -10), 10);
+var sphere2 = new Sphere(new Vector3(10, 10, -10), 10);
+plane.material = new CheckerMaterial(0.1, 0.5);
+sphere1.material = new PhongMaterial(Color.red, Color.white, 16, 0.25);
+sphere2.material = new PhongMaterial(Color.blue, Color.white, 16, 0.25);
+
+rayTraceReflection(
+    document.getElementById('renderCanvas'), 
+    new Union([plane, sphere1, sphere2]),
+    new PerspectiveCamera(new Vector3(0, 5, 15), new Vector3(0, 0, -1), new Vector3(0, 1, 0), 90),
+    3);
+</textarea>
+            </p>
+            <p>
+                <button onclick="eval(document.getElementById('FinalCode').value)">Run</button>
+            </p>
+        </div>
+        <!-- 9 End -->
+
+        <!-- 10 Start -->
+        <div class="glidecontent">
+            <p>10.Video</p>
+            <p>This short video shows how ray tracing behaves when it comes to different material:</p>
+            <div align=c enter>
+                <object width="500" height="405"><param name="movie" value="http://www.youtube.com/v/A-jYIxwhEXc&amp;hl=zh_CN&amp;fs=1?rel=0&amp;border=1"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/A-jYIxwhEXc&amp;hl=zh_CN&amp;fs=1?rel=0&amp;border=1" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="500" height="405"></embed></object>
+            </div>
+        </div>
+        <!-- 10 End -->
+
+        <!-- 11 Start -->
+        <div class="glidecontent">
+            <p>11.At last</p>
+            <p>Reference:</p>
+            <p>Jan Wieferich, The Principles of Ray Tracing</p>
+            <p>Saranat, <a href="http://www.youtube.com/watch?v=A-jYIxwhEXc">Example material with RayTrace Rendering</a></p>
+            <p>Wikipedia, <a href="http://en.wikipedia.org/wiki/Ray_tracing_(graphics)">Ray Tracing</a></p>
+            <p>Slime, <a href="http://www.slimeland.com/raytrace/">The JavaScript Raytracer</a></p>
+            <p>SIGGRAPH HyperGraph Education Project, <a href="http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtrace0.htm">Ray Tracing</a></p>
+        </div>
+        <!-- 11 End -->
+
+    </div>
+    <!-- The Slides End -->
+
+    <div id="p-select" class="glidecontenttoggler"> <a href="#" class="prev">Prev</a> <a href="#" class="toc">01</a> <a href="#" class="toc">02</a> <a href="#" class="toc">03</a>        <a href="#" class="toc">04</a> <a href="#" class="toc">05</a> <a href="#" class="toc">06</a> <a href="#" class="toc">07</a>        <a href="#" class="toc">08</a> <a href="#" class="toc">09</a> <a href="#" class="toc">10</a> <a href="#" class="toc">11</a>        <a href="#" class="next">Next</a> </div>
+    <div style="text-align:center;"><br/> Topics in Theory & Programming of Digital Images<br/> Summer 2010<br/>
+    </div>
+</body>
+</>

@@ -1,0 +1,60 @@
+.glidecontentwrapper {
+    position: relative;
+    width: 970px;
+    height: 540px;
+    border: 1px solid #cccccc;
+    overflow: hidden;
+    margin: 0 auto;
+}
+
+.glidecontent {
+    position: absolute;
+    background: white;
+    padding: 5px;
+    visibility: hidden;
+    width: 960px;
+}
+
+.glidecontenttoggler {
+    margin: 0 auto;
+    width: 970px;
+    margin-top: 6px;
+    text-align: center;
+}
+
+.glidecontenttoggler a {
+    display: -moz-inline-box;
+    display: inline-block;
+    border: 1px dashed black;
+    color: black;
+    padding: 1px 3px;
+    margin-right: 3px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.glidecontenttoggler a.selected {
+    /*style for selected page's toggler link. ".selected" class auto generated! */
+    background: #E4EFFA;
+    color: black;
+}
+
+.glidecontenttoggler a:hover {
+    background: #E4EFFA;
+    color: black;
+}
+
+.glidecontenttoggler a.toc {
+    /*style for individual toggler links (page 1, page 2, etc). ".toc" class auto generated! */
+}
+
+.glidecontenttoggler a.prev,
+.glidecontenttoggler a.next {
+    /*style for "prev" and "next" toggler links. ".prev" and ".next" classes auto generated! */
+}
+
+.glidecontenttoggler a.prev:hover,
+.glidecontenttoggler a.next:hover {
+    background: #1A48A4;
+    color: white;
+}
